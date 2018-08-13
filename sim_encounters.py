@@ -249,12 +249,13 @@ def run_collision(bodies, t_max, dt, identifier, path, planet_patching = False, 
         '''
         
     # Call for the stoppage of gravity -- hopefully this never happens in real life!
-    gravity.update_particle_tree()
-    gravity.update_particle_set()
-    gravity.particles.synchronize_to(bodies)
+    #gravity.update_particle_tree()
+    #gravity.update_particle_set()
+    #gravity.particles.synchronize_to(bodies)
     gravity.stop()
-
-    return get_solar_systems(bodies, converter = converter), bodies[bodies.id != 0]
+    #print bodies
+    #return get_solar_systems(bodies[bodies.id != 0], converter = converter), bodies[bodies.id != 0]
+    return bodies[bodies.id != 0]
     
 #------------------------------------------------------------------------------#
 #--The following function will install several cuts needed to run the program--#
