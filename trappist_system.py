@@ -25,7 +25,7 @@ def gen_random_data(n, min, max, unit):
 def gen_trappist_system(seed):
    random.seed(seed)
    bodies = Particles()
-
+   
    star = Particle()
    star.mass = star_mass
    star.radius = star_radius
@@ -35,8 +35,8 @@ def gen_trappist_system(seed):
 
    longitude_of_ascending_nodes = gen_random_data(len(masses), -np.pi/20, np.pi/20, units.rad)
 
-   positions, velocities = rel_posvel_arrays_from_orbital_elements(star_mass, masses, semimajor_axes, eccentricities, mean_anomalies, inclinations, \
-       longitude_of_ascending_nodes, argument_of_periapses, G=constants.G)
+   positions, velocities = rel_posvel_arrays_from_orbital_elements(star_mass, masses, semimajor_axes, eccentricities, mean_anomalies, inclinations.number, \
+       longitude_of_ascending_nodes, argument_of_periapses.number, G=constants.G)
    for i in range(len(masses)):
        planet = Particle()
        planet.mass = masses[i]
@@ -49,3 +49,4 @@ def gen_trappist_system(seed):
 
 if __name__ == "__main__":
     gen_trappist_system(10)
+       

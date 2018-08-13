@@ -72,7 +72,7 @@ def rotation_matrix_from_angles(psi, theta, phi):
     return r1 * r2 * r3
 
 def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
-    path = "ce_directory/new_angles"+param+"/TRAPPIST/1"
+    path = "ce_directory/distances"+param+"/TRAPPIST/1"
     if not os.path.exists(path): os.makedirs(path)
     new_bodies = run_collision(bodies, timescale, 12|units.hour, str(n), path, converter=converter)
     
@@ -101,9 +101,9 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep):
     kep.advance_to_periastron()
     timescale = kep.get_time()
 
-    #psi = -0.54449048738936623
-    #theta = -1.4059681462639526
-    #phi = 0.4160369316783718
+    psi = np.random.normal(0.0, 0.1, 1)[0]
+    theta = np.random.normal(0.0, 0.1, 1)[0]
+    phi = np.random.normal(0.0, 0.1, 1)[0]
     rotation_matrix = preform_EulerRotation()#rotation_matrix_from_angles(psi, theta, phi)#preform_EulerRotation()
     psi, theta, phi = extract_EulerAngles(rotation_matrix)
     #print np.rad2deg([psi, theta, phi])
@@ -120,16 +120,16 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep):
     
     return perturber, (psi, theta, phi), 2 * timescale
 
-def run(param):
-    path = "new_angles/angles"+param+"/"
+def run(param, mass):
+    path = "distances/close"+param+"/"
     if not os.path.exists(path): os.makedirs(path)
 
     for n in range(100):
         bodies = gen_trappist_system(10)
    
-        r_min = 1.0 | units.AU
-        ecc = 1.1
-        M = 4.0 | units.MSun
+        r_min = (1.0-float(n)/100.0) | units.AU
+        ecc = 1.001
+        M = mass | units.MSun
 
         converter = nbody_system.nbody_to_si(bodies.mass.sum() + M, 2 * (M.number)**(1.0 / 3.0) | units.RSun)
         kep = Kepler(unit_converter=converter)
@@ -137,10 +137,11 @@ def run(param):
         perturber, angles, timescale = generate_random_perturber_orientation(r_min, ecc, M, bodies.mass.sum(), kep)
         bodies.add_particle(perturber)
         kep.stop()
-        f = open(path+"angle%03d.txt" % n, "w")
-	f.write(str(angles) + "\n")
+        f = open(path+"distance%03d.txt" % n, "w")
+	f.write(str(M) + "\n")
+	f.write(str(r_min) + "\n")
         f.write(str(get_largest_delta_e(bodies, perturber, timescale, converter, n, param)) + "\n")
 	f.close()
 
 if __name__ == "__main__":
-    run(sys.argv[1])
+    run(sys.argv[1], float(sys.argv[2]))

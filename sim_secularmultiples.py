@@ -1,6 +1,7 @@
 from amuse.lab import *
 from amuse.community.secularmultiple.interface import SecularMultiple
 from amuse.ext.orbital_elements import orbital_elements_for_rel_posvel_arrays
+from amuse.community.kepler.interface import kepler
 import numpy as np
 import os
 
@@ -52,6 +53,8 @@ def make_binaries(bodies, converter = None):
     
     # Associate each planet with its closest star
     # Note: Does not take into account planets orbiting binary stars
+    converter = nbody_system.nbody_to_si(1|units.MEarth, 1|units.AU)
+    #kep = Kepler(unit_converter=converter)
     for planet in planets:
         planet.is_binary = False
         planet.child1 = None
@@ -67,23 +70,31 @@ def make_binaries(bodies, converter = None):
             
             #TODO: check if relative velocity * position ~= 0,
             # or, check eccentricity of the orbit
-            
+	    #rel_pos = star.position - planet.position
+	    #rel_vel = star.velocity - planet.velocity
+	    #total_mass = star.mass + planet.mass
+
+	    #kep.initialize_from_dyn(total_mass, rel_pos[0], rel_pos[1], rel_pos[2], rel_vel[0], rel_vel[1], rel_vel[2])
+	    #a, e = kep.get_elements()
             d = rel_distance(planet, star)
-            if d < min_distance:
+	    #if e > 1:
+	    #    "Planet of mass", planet.mass, " in hyperbolic orbit with star of mass", star.mass, "(ecc=",e,")"
+            if d < min_distance:# and e < 1:
                 min_distance = d
                 min_star = star
+	    
+        if min_star != None:
+            # Update binary system with next closest plant
+            old_binary = star_system_binaries[min_star]
         
-        # Update binary system with next closest plant
-        old_binary = star_system_binaries[min_star]
-        
-        root_binary = Particle()
-        root_binary = bodies.add_particle(root_binary)
-        root_binary.is_binary = True
-        root_binary.child1 = old_binary
-        root_binary.child2 = planet
+            root_binary = Particle()
+            root_binary = bodies.add_particle(root_binary)
+            root_binary.is_binary = True
+            root_binary.child1 = old_binary
+            root_binary.child2 = planet
              
-        star_system_binaries[min_star] = root_binary
-        
+            star_system_binaries[min_star] = root_binary
+    #kep.stop()  
     # Put planetary systems in a heirarchical binary configuration
     
     # Easy if we only have one or two stars
@@ -193,7 +204,7 @@ def evolve_secular_multiples(bodies, binaries, end_time, n_steps, root_binary):
             print_semimajor_axis_AU[index].append(binaries[index].semimajor_axis)
             print_eccentricity[index].append(binaries[index].eccentricity)
             print_inclination[index].append(binaries[index].inclination)
-            
+    code.stop()        
     return print_times_Myr, print_semimajor_axis_AU, print_eccentricity, print_inclination, bodies
 
 # determines whether a planetary system is completely stable or not
