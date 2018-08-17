@@ -114,12 +114,12 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     
     return perturber, (psi, theta, phi), 2 * timescale
 
-def run(param, mass, name_int):
+def run(param, mass, name_int, initial_e, percent_increase):
     path = "distance_ecc_list/close"+param+"/"
     if not os.path.exists(path): os.makedirs(path)
 
 
-    max_distance = 50.0 | units.AU
+    max_distance = 1000.0 | units.AU
     min_distance = 0.05 | units.AU
     closest_distance = 0 | units.AU
 
@@ -130,6 +130,8 @@ def run(param, mass, name_int):
     n = 0
     f = open(path+"distance%05d.txt" % name_int, "w")
     f.write(str(mass)+"\n")
+    f.write(str(percent_increase)+"\n")
+    
     while max_distance - min_distance > (10000 | units.km):
         bodies = gen_trappist_system(10)
         closest_distance = (max_distance - min_distance) / 2 + min_distance
@@ -147,10 +149,6 @@ def run(param, mass, name_int):
         perturber, angles, timescale = generate_random_perturber_orientation(r_min, ecc, M, bodies.mass.sum(), kep, psi, theta, phi)
 	bodies.add_particle(perturber)
 	kep.stop()
-	f.write("---\n")
-	f.write(str(r_min) + "\n")
-	f.write(str(", ".join(ecc[-1])) + "\n")
-	f.write("---\n")
         es = get_largest_delta_e(bodies, perturber, timescale, converter, n, param)
 	eject_stable = True
 
@@ -159,8 +157,7 @@ def run(param, mass, name_int):
 	        if np.isnan(e):
 		    eject_stable = False
 		    break
-        print max(es[-1])
-	if eject_stable:
+	if eject_stable and initial_e * (1 + percent_increase) > max(es[-1]):
 	    max_distance = closest_distance
 	    print "is stable!"
 	else:
@@ -172,4 +169,6 @@ def run(param, mass, name_int):
     f.close()
 
 if __name__ == "__main__":
-    run(sys.argv[1], float(sys.argv[2]))
+    initial = 0.009833817293648425
+    percent_increase = 0.5
+    run(sys.argv[1], float(sys.argv[2]), initial, percent_increase)

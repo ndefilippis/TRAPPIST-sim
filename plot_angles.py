@@ -85,10 +85,28 @@ def gen_heatmap(xs, ys, ws, x_min, x_max, y_min, y_max, bins):
         for j in range(len(arr[i])):
 	    if arr[i, j, 1] == 0:
 	        count += 1
-	        arr[i, j, 0] = 0.00
-		arr[i, j, 1] = 1
+	        arr[i, j, 0] = get_average(arr, i, j)
+		arr[i, j, 1] = 0
     print "%d bins are 0." % count
     return arr[:,:,0]
+
+def get_average(arr, i, j):
+    c = 0
+    t = 0
+    for ii in range(-3, 4):
+        for jj in range(-3, 4):
+            i_n = i + ii
+	    j_n = j + jj
+	    if i_n >= 0 and i_n < len(arr) and j_n >= 0 and j_n < len(arr):
+	        x, n = arr[i_n, j_n]
+		if n != 0:
+                    c += 1 / float(ii*ii + jj*jj)
+		    t += x / float(ii*ii + jj*jj)
+    if c != 0:
+        return t / c
+    else:
+        return 0
+
 
 #------------------------------------------------------------------------------#
 #-The following function will handle all of this project's visualization tools-#
@@ -120,7 +138,7 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
     # If the user wants to make trail maps in their run, the following code will be executed
     if make_map == True:
 
-        plt.figure(figsize = (5.5, 5))
+        fig = plt.figure(figsize = (11, 10))
         #print xs[0], zs[0], cs[0], ss[0]
         # x by z plot (top left corner)
         plt.subplot(221, aspect = 'equal')
@@ -136,10 +154,11 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
 	extent = [psi_min, psi_max, phi_min, phi_max]
 
         plt.imshow(heatmap, extent=extent, cmap='viridis', vmin=ecc_min, vmax=ecc_max)
-        plt.ylabel('$\phi [deg]$')
+        plt.yticks(np.arange(-180.0, 181.0, 90.0))
+	plt.ylabel('$\phi$ [deg]', fontsize=22)
         plt.xlim(psi_min, psi_max)
         plt.ylim(phi_min, phi_max)
-        plt.colorbar()
+
         # x by y plot (lower left corner)
         plt.subplot(223, aspect = 'equal')
         ax = plt.gca()
@@ -147,8 +166,10 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
 	heatmap = gen_heatmap(psis, thetas, eccs, psi_min, psi_max, theta_min, theta_max, bins)
 	extent = [psi_min, psi_max, theta_min, theta_max]
         plt.imshow(heatmap, extent=extent, cmap='viridis', vmin=ecc_min, vmax=ecc_max, aspect=2)
-        plt.xlabel('$\psi [deg]$')
-        plt.ylabel(r"$\theta [deg]$")
+        plt.yticks(np.arange(-90.0, 91.0, 90.0))
+	plt.xticks(np.arange(-180.0, 181.0, 90.0))
+	plt.xlabel('$\psi$ [deg]', fontsize=22)
+        plt.ylabel(r"$\theta$ [deg]",fontsize=22)
         plt.xlim(psi_min, psi_max)
         plt.ylim(theta_min, theta_max)        
         #ax.set_xticklabels([min, max])
@@ -164,20 +185,27 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
 
         heatmap = gen_heatmap(phis, thetas, eccs, phi_min, phi_max, theta_min, theta_max, bins)
 	extent = [phi_min, phi_max, theta_min, theta_max]
-	plt.imshow(heatmap, extent=extent, cmap='viridis', vmin=ecc_min, vmax=ecc_max, aspect=2)
-        plt.xlabel('$\phi [deg]$')
-        plt.subplots_adjust(top=0.9, bottom=0.1, left=0.1475, right=0.95, hspace=0.25, wspace=0.01)
-        #plt.subplots_adjust(wspace = 0.001) # shorten the width between left and right since there aren't tick marks
+	plt.xticks(np.arange(-180.0, 181.0, 90.0))
+	im = plt.imshow(heatmap, extent=extent, cmap='viridis', vmin=ecc_min, vmax=ecc_max, aspect=2)
+        plt.xlabel('$\phi$ [deg]',fontsize=22)
+        plt.subplots_adjust(top=0.9, bottom=0.1, left=0.06, right=0.95, hspace=0.25, wspace=0.01)
+        plt.subplots_adjust(wspace = 0.001) # shorten the width between left and right since there aren't tick marks
         plt.xlim(phi_min, phi_max)
         plt.ylim(theta_min, theta_max)
+
+	plt.subplots_adjust(right=0.85)
+	cbar_ax = fig.add_axes([0.85, 0.15, 0.025, 0.7])
+	cbar = plt.colorbar(im, cax=cbar_ax)
+	cbar.set_label('Eccentricity', fontsize=22)
 	#plt.colorbar()
         #leg = plt.colorbar(loc='upper right', bbox_to_anchor=(0.9, 2))#loc = (1.5, 1))#, loc = 'upper right')
         #leg.get_frame().set_edgecolor('white')
 
         # make some plot_radius function to determine value for s for stars and planets...
         # stars and planets should look noticeably different in size, but stars/stars and planets/planets should be subtle
-        plt.suptitle("$\Delta\epsilon$ versus Orientation")
+        plt.suptitle("Eccentricity versus Orientation", fontsize=35)
         print 'saving///' # just for the user's sake..
+	plt.savefig('angle_maps/' + str(name) + '.png', dpi = 1000)
         plt.savefig('angle_maps/' + str(name) + '.pdf', dpi = 1000)
         plt.clf()
 
