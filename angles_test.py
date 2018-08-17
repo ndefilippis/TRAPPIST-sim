@@ -84,7 +84,7 @@ def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
         es.append(line)
     return es
 
-def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep):
+def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, theta, phi):
     perturber = Particle()
     perturber.mass = M
     perturber.radius = np.cbrt(M.in_(units.MSun).number) | units.RSun
@@ -101,9 +101,7 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep):
     kep.advance_to_periastron()
     timescale = kep.get_time()
 
-    #psi = -0.54449048738936623
-    #theta = -1.4059681462639526
-    #phi = 0.4160369316783718
+    #psi, theta, phi = np.deg2rad((psi, theta, phi))
     rotation_matrix = preform_EulerRotation()#rotation_matrix_from_angles(psi, theta, phi)#preform_EulerRotation()
     psi, theta, phi = extract_EulerAngles(rotation_matrix)
     #print np.rad2deg([psi, theta, phi])

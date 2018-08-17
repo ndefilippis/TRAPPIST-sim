@@ -14,9 +14,10 @@ end_mass = float(sys.argv[4])
 samples = int(sys.argv[5])
 
 dm = (end_mass - mass) / n
-masses = np.arange(mass, end_mass, dm)
+masses = np.logspace(start=np.log2(mass), stop=np.log2(end_mass), num=n, base=2.0)
 masses = np.repeat(masses, samples)
 labels = map("{0:03d}".format, range(start, start+n))
 labels = np.repeat(labels, samples)
 seeds = np.random.randint(100000, size=n*samples)
+print masses
 p.map(apply_tuple_to_run, zip(labels, masses, seeds))

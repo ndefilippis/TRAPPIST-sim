@@ -71,7 +71,8 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
     #print xs_min
     # We want all axes to share the same horizontal and vertival max and min; find them now
     max, min = np.max([xs_max, ys_max, zs_max]), np.min([xs_min, ys_min, zs_min])
-
+    max = 5.0
+    min = -5.0
     # make some quick visualization adjustments to provide some blackspace on the edges
     min -= 0.1 * np.abs(min)
     max += 0.1 * np.abs(max)
@@ -97,7 +98,7 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
         #print '---------------', xs, zs
         #print xs[:12]
         plt.scatter(xs, zs, c = cs, s = ss)
-        plt.scatter(xs[:num_bodies], zs[:num_bodies], marker = 'x',  s = ms, c = ['black'] * num_bodies)
+        plt.scatter(xs[:num_bodies], zs[:num_bodies], marker = 'o',  s = 4*ms, c = ['black'] * num_bodies)
         plt.ylabel('Z [AU]')
         plt.xlim(min, max)
         plt.ylim(min, max)       
@@ -107,7 +108,7 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
         ax.set_facecolor('black')
         plt.scatter(xs, ys, c = cs, s = ss)
         #[plt.scatter(float(xs[i]), float(ys[i]), c = cs[i], s = int(ss[i])) for i in range(len(xs))]
-        plt.scatter(xs[:num_bodies], ys[:num_bodies], marker = 'x', s = ms,  c = ['black'] * num_bodies)
+        plt.scatter(xs[:num_bodies], ys[:num_bodies], marker = 'o', s = 4*ms,  c = ['black'] * num_bodies)
         plt.xlabel('X [AU]')
         plt.ylabel('Y [AU]')
         plt.xlim(min, max)
@@ -123,25 +124,25 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
         ax.set_yticklabels([])
         #[plt.scatter(float(zs[i]), float(ys[i]), c = cs[i], s = int(ss[i])) for i in range(len(xs))]
         plt.scatter(zs, ys, c = cs, s = ss)
-        plt.scatter(zs[:num_bodies], ys[:num_bodies], marker = 'x', s = ms, c = ['black'] * num_bodies)        
+        plt.scatter(zs[:num_bodies], ys[:num_bodies], marker = 'o', s = 4*ms, c = ['black'] * num_bodies)        
         plt.xlabel('Z [AU]')
         plt.subplots_adjust(top=0.9, bottom=0.1, left=0.1475, right=0.95, hspace=0.25, wspace=0.01)
         #plt.subplots_adjust(wspace = 0.001) # shorten the width between left and right since there aren't tick marks
         plt.xlim(min, max)
         plt.ylim(min, max)
-        star_color = mpatches.Patch(color='yellow', label='Stars')
-        earth_color = mpatches.Patch(color='blue', label='Earth(s)')
+        star_color = mpatches.Patch(color='#ffc600', label='Stars')
+        earth_color = mpatches.Patch(color='#07492d', label='Earth(s)')
         jupiter_color = mpatches.Patch(color='orange', label='Jupiter(s)')
         neptune_color = mpatches.Patch(color='green', label='Neptune(s)') 
-        leg = plt.legend(handles=[star_color, earth_color, jupiter_color, neptune_color], loc='upper right', bbox_to_anchor=(0.9, 2))#loc = (1.5, 1))#, loc = 'upper right')
-        leg.get_frame().set_edgecolor('white')
+        #leg = plt.legend(handles=[star_color, earth_color, jupiter_color, neptune_color], loc='upper right', bbox_to_anchor=(0.9, 2))#loc = (1.5, 1))#, loc = 'upper right')
+        #leg.get_frame().set_edgecolor('white')
 
         # make some plot_radius function to determine value for s for stars and planets...
         # stars and planets should look noticeably different in size, but stars/stars and planets/planets should be subtle
-        plt.suptitle(str(time_stamps[-1]) + ' yr Simulation (' + str(num_stars) + ' Stars, ' + str(num_planets) + ' Planet' + plural + ')')
+        plt.suptitle(str(time_stamps[-1]) + ' year Simulation of TRAPPIST-1 system')
         print 'saving///' # just for the user's sake..
         plt.savefig('trail_maps/' + str(name) + '.pdf', dpi = 1000)
-        plt.savefig('movies/' + name + '_00000.png', dpi = 300)
+        plt.savefig('movies/' + name + '_00000.png', dpi = 1000)
         plt.clf()
 
 
@@ -159,7 +160,7 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
             # x by z plot (top left corner)
             plt.subplot(221, aspect = 'equal')
             ax = plt.gca()
-            ax.set_facecolor('black')
+            ax.set_facecolor('#D0D3D4')
             ax.set_xticklabels([])
             plt.scatter(xs[s_min:s_max], zs[s_min:s_max], c = cs[s_min:s_max], s = ss[s_min:s_max])
             plt.ylabel('Z (AU)')
@@ -181,7 +182,7 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
             # x by y plot (lower left corner)
             plt.subplot(223, aspect = 'equal')
             ax = plt.gca()
-            ax.set_facecolor('black')
+            ax.set_facecolor('#D0D3D4')
             plt.scatter(xs[s_min:s_max], ys[s_min:s_max], c = cs[s_min:s_max], s = ss[s_min:s_max])            
             plt.xlabel('X (AU)')
             plt.ylabel('Y (AU)')
@@ -192,7 +193,7 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
             # z by y plot (lower right corner)
             plt.subplot(224, aspect = 'equal')
             ax = plt.gca()
-            ax.set_facecolor('black')
+            ax.set_facecolor('#D0D3D4')
             ax.set_yticklabels([])
             plt.scatter(zs[s_min:s_max], ys[s_min:s_max], c = cs[s_min:s_max], s = ss[s_min:s_max])
             plt.xlabel('Z (AU)')
@@ -209,8 +210,8 @@ def generate_visuals(bodies, time_stamps, path, name, make_movie = False, make_m
             plt.subplots_adjust(top=0.9, bottom=0.1, left=0.1475, right=0.95, hspace=0.25, wspace=0.01)
             #plt.subplots_adjust(wspace = 0.001) # shorten the width between left and right since there aren't tick marks
 
-            star_color = mpatches.Patch(color='yellow', label='Stars')
-            earth_color = mpatches.Patch(color='blue', label='Earth(s)')
+            star_color = mpatches.Patch(color='#ffc600', label='Stars')
+            earth_color = mpatches.Patch(color='#07294d', label='Earth(s)')
             jupiter_color = mpatches.Patch(color='orange', label='Jupiter(s)')
             neptune_color = mpatches.Patch(color='green', label='Neptune(s)')
                   #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., handles=[star_color, earth_color, jupiter_color, neptune_color])
@@ -368,7 +369,8 @@ for data_dir in data_dirs:
                     print os.path.join(fin_data_path, snapshot)
                     # At each new time step, we will need to load in the new data file
                     bodies = read_set_from_file(os.path.join(fin_data_path, snapshot), 'hdf5', close_file = True)
-                    if np.isnan(bodies[0].vx.number): nan_counter += 1; print 'qqq'; break#or np.nan in bodies.vy.number or np.nan in bodies.vz.number or np.nan in bodies.x.number or np.nan in bodies.y.number or np.nan in bodies.z.number: break
+                    bodies = bodies[bodies.mass > 13 | units.MJupiter]
+		    if np.isnan(bodies[0].vx.number): nan_counter += 1; print 'qqq'; break#or np.nan in bodies.vy.number or np.nan in bodies.vz.number or np.nan in bodies.x.number or np.nan in bodies.y.number or np.nan in bodies.z.number: break
 
                     time_stamps.append(bodies.get_timestamp().in_(units.yr).number) # get the list of time steps
                     # if we're making plots, let's set some things up
@@ -376,7 +378,7 @@ for data_dir in data_dirs:
                     
                         # The following two lines of code separate bodies into stars and planets
                         stars, planets = get_stars(bodies), get_planets(bodies)
-                        stars.color = 'y' # Let's make the stars yellow
+                        stars.color = '#ffc600' # Let's make the stars yellow
                         stars.ms = 5
                         #print stars, planets, stars.id, planets.host_star
                         swp = stars[stars.id ==238]# planets.host_star]
@@ -385,11 +387,13 @@ for data_dir in data_dirs:
                         #planets.ms = 5
                         #print stars
                         for planet in planets:
-
-                            if planet.id < 40000.: planet.ms = 1; planet.color = 'blue'
-                            elif planet.id < 60000.: planet.ms = 3; planet.color = 'orange'                   
-                            else: planet.ms = 2; planet.color = 'green'
-
+                            #print planet.id
+                            if planet.id < 40000.: planet.ms = 1; planet.color = '#07294D'
+                            #elif planet.id < 60000.: planet.ms = 3; planet.color = 'orange'                   
+                            #else: planet.ms = 2; planet.color = 'green'
+                        pos = bodies[0].position
+			for body in bodies:
+			    body.position -= pos
                         # This could be where your code slows down!!!
                         bodies_plot_data.append(np.array([bodies.x.in_(units.AU).number, bodies.y.in_(units.AU).number, bodies.z.in_(units.AU).number, bodies.color, bodies.ms]))
                     if gen_dict:

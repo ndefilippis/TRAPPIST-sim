@@ -72,9 +72,9 @@ def rotation_matrix_from_angles(psi, theta, phi):
     return r1 * r2 * r3
 
 def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
-    path = "ce_directory/close"+param+"/TRAPPIST/1"
+    path = "ce_directory/trajectory_image/TRAPPIST/000/1"
     if not os.path.exists(path): os.makedirs(path)
-    new_bodies = run_collision(bodies, timescale, timescale / 100, str(n), path, converter=converter)
+    new_bodies = run_collision(bodies, timescale, 60|units.hour, str(n), path, converter=converter)
     
     #print new_bodies
     t, a, e, i, _ = run_secular_multiples(new_bodies-perturber, 10000.0|units.yr, 300)
@@ -90,18 +90,21 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     perturber.radius = np.cbrt(M.in_(units.MSun).number) | units.RSun
     total_mass = M + other_M
 
-    mean_anomaly = np.deg2rad(-180)
+    mean_anomaly = np.deg2rad(-0.5)
     semi = r_min / (1 - ecc)
     kep.initialize_from_elements(mass=total_mass, semi=semi, ecc=ecc, mean_anomaly=mean_anomaly, time=0|units.yr, periastron=r_min)
     
+    
     position = kep.get_separation_vector()
     velocity = kep.get_velocity_vector()
-
-
+    
     kep.advance_to_periastron()
     timescale = kep.get_time()
-    print timescale.in_(units.day)
+
+    #psi, theta, phi = np.deg2rad((psi, theta, phi))
     rotation_matrix = rotation_matrix_from_angles(psi, theta, phi)#preform_EulerRotation()
+    psi, theta, phi = extract_EulerAngles(rotation_matrix)
+    #print np.rad2deg([psi, theta, phi])
     position_matrix = np.matrix(([[position[0].number], [position[2].number], [position[1].number]]))
     velocity_matrix = np.matrix(([[velocity[0].number], [velocity[2].number], [velocity[1].number]]))
     position_new = np.dot(rotation_matrix, position_matrix) | position[0].unit
@@ -114,62 +117,27 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     
     return perturber, (psi, theta, phi), 2 * timescale
 
-def run(param, mass, name_int):
-    path = "distance_ecc_list/close"+param+"/"
-    if not os.path.exists(path): os.makedirs(path)
-
-
-    max_distance = 50.0 | units.AU
-    min_distance = 0.05 | units.AU
-    closest_distance = 0 | units.AU
-
-    psi = np.random.uniform(0, np.pi/20, 1)[0]
-    theta = np.random.uniform(np.pi/2, np.pi/20, 1)[0]
-    phi = np.random.uniform(0, np.pi/20, 1)[0]
-    
-    n = 0
-    f = open(path+"distance%05d.txt" % name_int, "w")
-    f.write(str(mass)+"\n")
-    while max_distance - min_distance > (10000 | units.km):
+def run():
+    for n in range(1):
         bodies = gen_trappist_system(10)
-        closest_distance = (max_distance - min_distance) / 2 + min_distance
-	print "Checking", closest_distance.in_(units.AU)
-	r_min = closest_distance
-	v_inf = 35 | units.kms
-                
-	mu = constants.G * bodies.mass.sum()
-	semimajor_axis = - mu / (v_inf * v_inf)
-	ecc = 1 - r_min / semimajor_axis
-        M = mass | units.MSun
+   
+        r_min = 1.0 | units.AU
+        ecc = 1.01
+        M = 4.0 | units.MSun
+        
+        psi = np.random.normal(0, np.pi/8, 1)[0]
+	theta = np.random.normal(np.pi/2, np.pi/8, 1)[0]
+	phi = np.random.normal(0, np.pi/8, 1)[0]
+
         converter = nbody_system.nbody_to_si(bodies.mass.sum() + M, 2 * (M.number)**(1.0 / 3.0) | units.RSun)
         kep = Kepler(unit_converter=converter)
-
+      
         perturber, angles, timescale = generate_random_perturber_orientation(r_min, ecc, M, bodies.mass.sum(), kep, psi, theta, phi)
+        kep.stop()
 	bodies.add_particle(perturber)
-	kep.stop()
-	f.write("---\n")
-	f.write(str(r_min) + "\n")
-	f.write(str(", ".join(ecc[-1])) + "\n")
-	f.write("---\n")
-        es = get_largest_delta_e(bodies, perturber, timescale, converter, n, param)
-	eject_stable = True
-
-        for ee in es:
-	    for e in ee:
-	        if np.isnan(e):
-		    eject_stable = False
-		    break
-        print max(es[-1])
-	if eject_stable:
-	    max_distance = closest_distance
-	    print "is stable!"
-	else:
-	    print "is not stable!"
-	    min_distance = closest_distance
-	n += 1
-    f.write(str(mass)+"\n")
-    f.write(str(closest_distance)+"\n")
-    f.close()
-
+	print timescale.in_(units.yr)
+	f = open("graph_e.txt", "w")
+	f.write(str(get_largest_delta_e(bodies, perturber, timescale, converter, 0, "nn"))+ "\n")
+	f.close()
 if __name__ == "__main__":
-    run(sys.argv[1], float(sys.argv[2]))
+    run()
