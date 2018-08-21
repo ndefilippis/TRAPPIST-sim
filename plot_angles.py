@@ -137,13 +137,13 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
 
     # If the user wants to make trail maps in their run, the following code will be executed
     if make_map == True:
-
-        fig = plt.figure(figsize = (11, 10))
+        fig = plt.figure(figsize = (11.5, 10))
         #print xs[0], zs[0], cs[0], ss[0]
         # x by z plot (top left corner)
         plt.subplot(221, aspect = 'equal')
         ax = plt.gca()
-        ax.set_facecolor('black')
+        ax.tick_params(labelsize=20)
+	ax.set_facecolor('black')
         ax.set_xticklabels([])
         #print range(len(xs))
         #print [(xs[i], zs[i], cs[i], ss[i]) for i in range(len(xs))]
@@ -162,6 +162,7 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
         # x by y plot (lower left corner)
         plt.subplot(223, aspect = 'equal')
         ax = plt.gca()
+	ax.tick_params(labelsize=20)
         ax.set_facecolor('black')
 	heatmap = gen_heatmap(psis, thetas, eccs, psi_min, psi_max, theta_min, theta_max, bins)
 	extent = [psi_min, psi_max, theta_min, theta_max]
@@ -179,6 +180,7 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
         # z by y plot (lower right corner)
         plt.subplot(224, aspect = 'equal')
         ax = plt.gca()
+	ax.tick_params(labelsize=20)
         ax.set_facecolor('black')
         ax.set_yticklabels([])
         #[plt.scatter(float(zs[i]), float(ys[i]), c = cs[i], s = int(ss[i])) for i in range(len(xs))]
@@ -188,13 +190,14 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
 	plt.xticks(np.arange(-180.0, 181.0, 90.0))
 	im = plt.imshow(heatmap, extent=extent, cmap='viridis', vmin=ecc_min, vmax=ecc_max, aspect=2)
         plt.xlabel('$\phi$ [deg]',fontsize=22)
-        plt.subplots_adjust(top=0.9, bottom=0.1, left=0.06, right=0.95, hspace=0.25, wspace=0.01)
+        plt.subplots_adjust(top=0.9, bottom=0.1, left=0.08, right=0.92, hspace=0.25, wspace=0.01)
         plt.subplots_adjust(wspace = 0.001) # shorten the width between left and right since there aren't tick marks
         plt.xlim(phi_min, phi_max)
         plt.ylim(theta_min, theta_max)
 
 	plt.subplots_adjust(right=0.85)
 	cbar_ax = fig.add_axes([0.85, 0.15, 0.025, 0.7])
+	cbar_ax.tick_params(labelsize=20)
 	cbar = plt.colorbar(im, cax=cbar_ax)
 	cbar.set_label('Eccentricity', fontsize=22)
 	#plt.colorbar()
