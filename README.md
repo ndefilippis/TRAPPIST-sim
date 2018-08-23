@@ -6,7 +6,9 @@ This package was developed to investigate the effects of close stellar encounter
 
 This package uses Python 2.7, the [AMUSE](https://github.com/amusecode/amuse) framework, and the [Tycho](https://github.com/JPGlaser/Tycho) community code.
 
-## Package Overview ##
+## Package Overview
+
+# Packages 
 
 **sim_secularmultiples.py**
 
@@ -55,4 +57,10 @@ Usage: `python closest_all_test.py folder_id solar_mass percent_change`
 
 Pass in -1 for `percent_change` to find the ejection limit, i.e. the point at which the outermost planet gets ejected from the system
 
+# Multithreading
+
+This package also contains several scripts to pool running several runs at once. All these scripts begin with `pool_`. To
+run these, the syntax is usually
+
+python pool_*.py start_folder num_samples
 
