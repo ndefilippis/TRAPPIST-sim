@@ -1,2 +1,3 @@
 orientation.py
+*.pyc
 data/*

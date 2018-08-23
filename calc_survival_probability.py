@@ -45,6 +45,6 @@ def calc_survival_rate(distance_list):
     return dynamical_time * survival_prob
 
 if __name__ == "__main__":
-    data_path = "/home/draco/ndefilippis/distance_ecc"
+    data_path = "data/distance"
     data = generate_mass_map(data_path, contains_ecc=True)
     print calc_survival_rate(data[0.01])
