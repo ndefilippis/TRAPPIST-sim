@@ -1,3 +1,14 @@
+#------------------------------------------------------------------------------#
+#---------------------------sim_secularmultiples.py----------------------------#
+#------------------------------------------------------------------------------#
+#--------------------------Created by Nick DeFilippis--------------------------#
+#------------------------------------------------------------------------------#
+#---This program was created for the purpose of running the SecularMultiples---#
+#-----integrator to determine the long-term stability of a planetary system----#
+#------------------------------------------------------------------------------#
+#------------------------Date Last Modified: 08/16/2018------------------------#
+#------------------------------------------------------------------------------#
+
 from amuse.lab import *
 from amuse.community.secularmultiple.interface import SecularMultiple
 from amuse.ext.orbital_elements import orbital_elements_for_rel_posvel_arrays
@@ -6,7 +17,6 @@ import numpy as np
 import os
 
 # Functions to separate stars from planets - 
-# or use Mark's code in sim_encounters
 def get_stars(bodies):
     limiting_mass_for_planets = 13 | units.MJupiter
     
@@ -29,10 +39,6 @@ def rel_distance(body1, body2):
 # Pulls out stars and categorizes planets that are
 # orbiting each one.
 def make_binaries(bodies, converter = None):
-    
-    # Use kepler to verify orbital parameters have an elliptical orbit
-    # kep = Kepler(unit_converter = converter, redirection = 'none')
-    # kep.initialize_code()
     
     stars, planets = get_stars(bodies), get_planets(bodies)
     num_stars, num_planets = len(stars), len(planets)
@@ -68,11 +74,6 @@ def make_binaries(bodies, converter = None):
         min_star = None
         for star in stars:
             
-            #TODO: check if relative velocity * position ~= 0,
-            # or, check eccentricity of the orbit
-	    #rel_pos = star.position - planet.position
-	    #rel_vel = star.velocity - planet.velocity
-	    #total_mass = star.mass + planet.mass
 
 	    #kep.initialize_from_dyn(total_mass, rel_pos[0], rel_pos[1], rel_pos[2], rel_vel[0], rel_vel[1], rel_vel[2])
 	    #a, e = kep.get_elements()
@@ -141,7 +142,8 @@ def make_binaries(bodies, converter = None):
         star_binaries[star.neighbour] = root_binary
     
     return bodies[bodies.is_binary], root_binary
-   
+
+# Pretty print the system hiearchy
 def print_tree(binary): 
     if binary.is_binary:
         print_tree(binary.child1)
@@ -154,7 +156,7 @@ def print_tree(binary):
  
 
 
-# evolve model using Secular Multiples. Assumes that hiearchy of binaries
+# Evolve model using Secular Multiples. Assumes that hiearchy of binaries
 # has already been set up
 def evolve_secular_multiples(bodies, binaries, end_time, n_steps, root_binary):
     
@@ -321,6 +323,7 @@ def convert_solar_system_to_particle_set(bodies):
                     particle.position += star.position 
     return particles
 
+# Main runner function. Pass in bodies and output data from secular multiples
 def run_secular_multiples(bodies, t_max, n_steps):
     bodies = bodies.copy()
     binaries, root_binary = make_binaries(bodies)
@@ -330,8 +333,7 @@ def run_secular_multiples(bodies, t_max, n_steps):
     return evolve_secular_multiples(bodies, binaries, t_max, n_steps, root_binary)
 
 
-# Main runner function. Pass in bodies and output
-# data from secular multiples
+# Run secular multiples from small-n integrator in Mark's code
 def run_secular_multiples_from_smalln(data_path, bodies, t_max, n_steps):
     print "Running Secular Multiples"
     bodies = bodies.copy()

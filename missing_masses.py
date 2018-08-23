@@ -1,3 +1,8 @@
+'''
+Another utility script to find missing sampled masses
+Created by: Nick DeFilippis, Last Modified: 8/22/2018
+'''
+
 import os
 
 path = "/home/draco/ndefilippis/distance_ecc"
@@ -6,7 +11,7 @@ list = ["-1", "1.0", "0.1", "0.01"]
 
 for dir in directories:
 #for n in range(0, 2000):
-    prefix = dir[:9]
+    prefix = dir[:9] # directroy structure is closeXXXecc/file.txt
     #prefix = "close{0:03d}".format(n)
     for suffix in list:
         if prefix+suffix not in directories:
@@ -14,4 +19,3 @@ for dir in directories:
 	#test_path = os.path.join(path, prefix+suffix)
 	#if not os.path.exists(test_path):
 	#    print test_path, "does not exist."
-

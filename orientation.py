@@ -1,3 +1,7 @@
+'''
+Doesn't need to be in git
+'''
+
 import math, sys, os
 import numpy as np
 from amuse.lab import *
@@ -75,7 +79,7 @@ def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
     path = "ce_directory/trajectory_image/TRAPPIST/000/1"
     if not os.path.exists(path): os.makedirs(path)
     new_bodies = run_collision(bodies, timescale, 60|units.hour, str(n), path, converter=converter)
-    
+
     #print new_bodies
     t, a, e, i, _ = run_secular_multiples(new_bodies-perturber, 10000.0|units.yr, 300)
 
@@ -93,11 +97,11 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     mean_anomaly = np.deg2rad(-0.5)
     semi = r_min / (1 - ecc)
     kep.initialize_from_elements(mass=total_mass, semi=semi, ecc=ecc, mean_anomaly=mean_anomaly, time=0|units.yr, periastron=r_min)
-    
-    
+
+
     position = kep.get_separation_vector()
     velocity = kep.get_velocity_vector()
-    
+
     kep.advance_to_periastron()
     timescale = kep.get_time()
 
@@ -114,24 +118,24 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     perturber.velocity = [velocity_new[0][0], velocity_new[1][0], velocity_new[2][0]]
     #print np.rad2deg([psi, theta, phi])
     #print perturber.position.in_(units.AU)
-    
+
     return perturber, (psi, theta, phi), 2 * timescale
 
 def run():
     for n in range(1):
         bodies = gen_trappist_system(10)
-   
+
         r_min = 1.0 | units.AU
         ecc = 1.01
         M = 4.0 | units.MSun
-        
+
         psi = np.random.normal(0, np.pi/8, 1)[0]
 	theta = np.random.normal(np.pi/2, np.pi/8, 1)[0]
 	phi = np.random.normal(0, np.pi/8, 1)[0]
 
         converter = nbody_system.nbody_to_si(bodies.mass.sum() + M, 2 * (M.number)**(1.0 / 3.0) | units.RSun)
         kep = Kepler(unit_converter=converter)
-      
+
         perturber, angles, timescale = generate_random_perturber_orientation(r_min, ecc, M, bodies.mass.sum(), kep, psi, theta, phi)
         kep.stop()
 	bodies.add_particle(perturber)

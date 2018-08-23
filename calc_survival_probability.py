@@ -31,8 +31,8 @@ def calc_survival_rate(distance_list):
     for i in range(len(hist[0])-1):
 	closest_approach = distance_hist[i]
 	average_mass = masses_hist[i]
-	v_rms = 0.5 | units.kms
-	TRAPPIST_mass = (0.089 | units.MSun) + (4 | units.MSun)#average_mass
+	v_rms = 1.0 | units.kms
+	TRAPPIST_mass = (0.089 | units.MSun) + average_mass
 	#print closest_approach
 	factor = (constants.G * TRAPPIST_mass) / (closest_approach * v_rms**2)
 	#print factor
@@ -40,7 +40,7 @@ def calc_survival_rate(distance_list):
 	dynamical_time = 100 | units.Myr
         #print dynamical_time.in_(units.Myr)
 	dm = hist[1][i+1] - hist[1][i]
-        number_density = hist[0][i] * dm * 10.5 / (1 | units.lightyear)**3
+        number_density = hist[0][i] * np.pi * dm * 1.0 / (1 | units.lightyear)**3
 	survival_prob += number_density * v_rms * impact_parameter_2
     return dynamical_time * survival_prob
 

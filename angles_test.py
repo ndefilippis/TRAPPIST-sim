@@ -6,6 +6,7 @@ from sim_secularmultiples import run_secular_multiples
 from sim_encounters import run_collision
 from trappist_system import gen_trappist_system
 
+# From Tycho
 def preform_EulerRotation():
     ''' Preforms a randomly oriented Euler Transformation to a set of AMUSE Particles.
         particle_set: AMUSE particle set which it will preform the transform on.
@@ -37,6 +38,8 @@ def preform_EulerRotation():
     rotate = (2 * np.dot(np.outer(V, V), R) - np.dot(np.eye(3), R))
     return rotate
 
+# From wikipedia,
+# extracts euler angles from a rotation matrix
 def extract_EulerAngles(rotation_matrix):
     #psi = np.arcsin(X_prime[1] / np.sqrt(1 - X_prime[2] ** 2))
     if rotation_matrix[2, 0] < 1:
@@ -55,6 +58,7 @@ def extract_EulerAngles(rotation_matrix):
     #phi = np.arcsin(Y_prime[2] / np.sqrt(1 - X_prime[2] ** 2))
     return psi, theta, phi
 
+# Builds a rotation matrix from euler angles, given in radians
 def rotation_matrix_from_angles(psi, theta, phi):
     cs = np.cos([psi, theta, phi])
     ss = np.sin([psi, theta, phi])
@@ -71,12 +75,16 @@ def rotation_matrix_from_angles(psi, theta, phi):
 
     return r1 * r2 * r3
 
+# Simulates a given system-perturber encounter and finds that largest
+# maximum eccentricity of the outermost planet after a certain time period
 def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
     path = "ce_directory/new_angles"+param+"/TRAPPIST/1"
     if not os.path.exists(path): os.makedirs(path)
+
+    # Run SmallN
     new_bodies = run_collision(bodies, timescale, 12|units.hour, str(n), path, converter=converter)
-    
-    #print new_bodies
+
+    # Run SecularMultiples
     t, a, e, i, _ = run_secular_multiples(new_bodies-perturber, 10000.0|units.yr, 300)
 
     es = []
@@ -93,7 +101,7 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     mean_anomaly = np.deg2rad(-135)
     semi = r_min / (1 - ecc)
     kep.initialize_from_elements(mass=total_mass, semi=semi, ecc=ecc, mean_anomaly=mean_anomaly, time=0|units.yr, periastron=r_min)
-    
+
     position = kep.get_separation_vector()
     velocity = kep.get_velocity_vector()
 
@@ -115,7 +123,7 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     perturber.velocity = [velocity_new[0][0], velocity_new[1][0], velocity_new[2][0]]
     #print np.rad2deg([psi, theta, phi])
     #print perturber.position.in_(units.AU)
-    
+
     return perturber, (psi, theta, phi), 2 * timescale
 
 def run(param):
@@ -123,8 +131,10 @@ def run(param):
     if not os.path.exists(path): os.makedirs(path)
 
     for n in range(100):
+
         bodies = gen_trappist_system(10)
-   
+
+        # Perturber parameters
         r_min = 1.0 | units.AU
         ecc = 1.1
         M = 4.0 | units.MSun
@@ -135,10 +145,12 @@ def run(param):
         perturber, angles, timescale = generate_random_perturber_orientation(r_min, ecc, M, bodies.mass.sum(), kep)
         bodies.add_particle(perturber)
         kep.stop()
+
+        # Write results to output file
         f = open(path+"angle%03d.txt" % n, "w")
-	f.write(str(angles) + "\n")
+	    f.write(str(angles) + "\n")
         f.write(str(get_largest_delta_e(bodies, perturber, timescale, converter, n, param)) + "\n")
-	f.close()
+	    f.close()
 
 if __name__ == "__main__":
     run(sys.argv[1])
