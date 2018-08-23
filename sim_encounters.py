@@ -14,7 +14,7 @@
 #-------------------------------Import Libraries-------------------------------#
 #------------------------------------------------------------------------------#
 import matplotlib; matplotlib.use('agg') # first set the proper backend
-import sys; sys.path.insert(0, 'GitHub/Tycho/src') # specify path to create.py
+import sys; sys.path.insert(0, '/home/draco/ndefilippis/GitHub/Tycho/src') # specify path to create.py
 from tycho.create import planetary_systems_v2 as planetary_systems # load planetary_systems in from create.py
 from amuse.lab import *
 from amuse.plot import *
