@@ -84,7 +84,7 @@ def rotation_matrix_from_angles(psi, theta, phi):
     return r1 * r2 * r3
 
 def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
-    path = "ce_directory/close"+param+"/TRAPPIST/1"
+    path = "../ce_directory/close"+param+"/TRAPPIST/1"
     if not os.path.exists(path): os.makedirs(path)
     new_bodies = run_collision(bodies, timescale, timescale / 100, str(n), path, converter=converter)
 
@@ -128,7 +128,7 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     return perturber, (psi, theta, phi), 2 * timescale
 
 def run(param, mass, name_int, initial_e, percent_increase):
-    path = "distance_ecc_lowe/closer"+param+"/"
+    path = "data/distance/closer"+param+"/"
     if not os.path.exists(path): os.makedirs(path)
 
     # Do a binary search for closest approach distance
@@ -151,15 +151,15 @@ def run(param, mass, name_int, initial_e, percent_increase):
         bodies = gen_trappist_system(10)
         closest_distance = (max_distance - min_distance) / 2 + min_distance
         print "Checking", closest_distance.in_(units.AU)
-	    r_min = closest_distance
-	    v_inf = 3.5 | units.kms
+        r_min = closest_distance
+        v_inf = 3.5 | units.kms
 
-	    mu = constants.G * bodies.mass.sum()
-	    semimajor_axis = - mu / (v_inf * v_inf)
-	    ecc = 1 - r_min / semimajor_axis
+        mu = constants.G * bodies.mass.sum()
+        semimajor_axis = - mu / (v_inf * v_inf)
+        ecc = 1 - r_min / semimajor_axis
 
         # Find the right eccentricity
-	    print ecc
+        print ecc
         M = mass | units.MSun
         converter = nbody_system.nbody_to_si(bodies.mass.sum() + M, 2 * (M.number)**(1.0 / 3.0) | units.RSun)
         kep = Kepler(unit_converter=converter)
