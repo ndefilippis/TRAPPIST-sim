@@ -64,3 +64,6 @@ run these, the syntax is usually
 
 python pool_*.py start_folder num_samples
 
+# Generating Graphics
+
+The plot subfolder has several scripts for generating matplotlib graphics based on simulated data
