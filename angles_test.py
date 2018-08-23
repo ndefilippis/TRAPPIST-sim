@@ -78,7 +78,11 @@ def rotation_matrix_from_angles(psi, theta, phi):
 # Simulates a given system-perturber encounter and finds that largest
 # maximum eccentricity of the outermost planet after a certain time period
 def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
+<<<<<<< HEAD
     path = "../ce_directory/new_angles"+param+"/TRAPPIST/1"
+=======
+    path = "ce_directory/new_angles"+param+"/TRAPPIST/1"
+>>>>>>> df1ad89531729f2f4996b6c040dc386b5fbb6da1
     if not os.path.exists(path): os.makedirs(path)
 
     # Run SmallN
@@ -127,10 +131,17 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     return perturber, (psi, theta, phi), 2 * timescale
 
 def run(param):
+<<<<<<< HEAD
     path = "data/angles/angles"+param+"/"
     if not os.path.exists(path): os.makedirs(path)
 
     for n in range(10):
+=======
+    path = "new_angles/angles"+param+"/"
+    if not os.path.exists(path): os.makedirs(path)
+
+    for n in range(100):
+>>>>>>> df1ad89531729f2f4996b6c040dc386b5fbb6da1
 
         bodies = gen_trappist_system(10)
 
@@ -148,9 +159,13 @@ def run(param):
 
         # Write results to output file
         f = open(path+"angle%03d.txt" % n, "w")
+<<<<<<< HEAD
         f.write(str(angles) + "\n")
+=======
+	    f.write(str(angles) + "\n")
+>>>>>>> df1ad89531729f2f4996b6c040dc386b5fbb6da1
         f.write(str(get_largest_delta_e(bodies, perturber, timescale, converter, n, param)) + "\n")
-	f.close()
+	    f.close()
 
 if __name__ == "__main__":
     run(sys.argv[1])
