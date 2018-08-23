@@ -188,5 +188,5 @@ def run(param, mass, name_int, initial_e, percent_increase):
 
 if __name__ == "__main__":
     initial = 0.009833817293648425
-    percent_increase = 0.1
+    percent_increase = float(sys.argv[3])
     run(sys.argv[1], float(sys.argv[2]), 45, initial, percent_increase)
