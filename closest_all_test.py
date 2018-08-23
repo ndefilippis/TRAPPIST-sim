@@ -1,3 +1,15 @@
+#------------------------------------------------------------------------------#
+#----------------------------closest_all_test.py------------------------------#
+#------------------------------------------------------------------------------#
+#--------------------------Created by Nick DeFilippis--------------------------#
+#------------------------------------------------------------------------------#
+#---This program was created for the purpose of finding the closest approach---#
+#-----distance needed to account for the a certain percentage change in the----#
+#-----------------maximum eccentricity of the outermost planet-----------------#
+#------------------------------------------------------------------------------#
+#------------------------Date Last Modified: 08/16/2018------------------------#
+#------------------------------------------------------------------------------#
+
 import math, sys, os
 import numpy as np
 from amuse.lab import *
@@ -75,7 +87,7 @@ def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
     path = "ce_directory/close"+param+"/TRAPPIST/1"
     if not os.path.exists(path): os.makedirs(path)
     new_bodies = run_collision(bodies, timescale, timescale / 100, str(n), path, converter=converter)
-    
+
     #print new_bodies
     t, a, e, i, _ = run_secular_multiples(new_bodies-perturber, 10000.0|units.yr, 300)
 
@@ -84,6 +96,7 @@ def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
         es.append(line)
     return es
 
+# Generate perturber based on given parameters.
 def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, theta, phi):
     perturber = Particle()
     perturber.mass = M
@@ -93,7 +106,7 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     mean_anomaly = np.deg2rad(-180)
     semi = r_min / (1 - ecc)
     kep.initialize_from_elements(mass=total_mass, semi=semi, ecc=ecc, mean_anomaly=mean_anomaly, time=0|units.yr, periastron=r_min)
-    
+
     position = kep.get_separation_vector()
     velocity = kep.get_velocity_vector()
 
@@ -111,38 +124,42 @@ def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, thet
     perturber.velocity = [velocity_new[0][0], velocity_new[1][0], velocity_new[2][0]]
     #print np.rad2deg([psi, theta, phi])
     #print perturber.position.in_(units.AU)
-    
+
     return perturber, (psi, theta, phi), 2 * timescale
 
 def run(param, mass, name_int, initial_e, percent_increase):
     path = "distance_ecc_lowe/closer"+param+"/"
     if not os.path.exists(path): os.makedirs(path)
 
-
+    # Do a binary search for closest approach distance
     max_distance = 100000.0 | units.AU
     min_distance = 0.05 | units.AU
     closest_distance = 0 | units.AU
 
+    # Randomly sample about the most effecitve orientation
     psi = np.random.uniform(0, np.pi/20, 1)[0]
     theta = np.random.uniform(np.pi/2, np.pi/20, 1)[0]
     phi = np.random.uniform(0, np.pi/20, 1)[0]
-    
+
     n = 0
     f = open(path+"distance%05d.txt" % name_int, "w")
     f.write(str(mass)+"\n")
     f.write(str(percent_increase)+"\n")
-    
+
+    # Binary search
     while max_distance - min_distance > (10000000 | units.km):
         bodies = gen_trappist_system(10)
         closest_distance = (max_distance - min_distance) / 2 + min_distance
-	print "Checking", closest_distance.in_(units.AU)
-	r_min = closest_distance
-	v_inf = 3.5 | units.kms
-                
-	mu = constants.G * bodies.mass.sum()
-	semimajor_axis = - mu / (v_inf * v_inf)
-	ecc = 1 - r_min / semimajor_axis
-	print ecc
+        print "Checking", closest_distance.in_(units.AU)
+	    r_min = closest_distance
+	    v_inf = 3.5 | units.kms
+
+	    mu = constants.G * bodies.mass.sum()
+	    semimajor_axis = - mu / (v_inf * v_inf)
+	    ecc = 1 - r_min / semimajor_axis
+
+        # Find the right eccentricity
+	    print ecc
         M = mass | units.MSun
         converter = nbody_system.nbody_to_si(bodies.mass.sum() + M, 2 * (M.number)**(1.0 / 3.0) | units.RSun)
         kep = Kepler(unit_converter=converter)
