@@ -1,3 +1,14 @@
+#------------------------------------------------------------------------------#
+#--------------------------------angles_test.py--------------------------------#
+#------------------------------------------------------------------------------#
+#--------------------------Created by Nick DeFilippis--------------------------#
+#------------------------------------------------------------------------------#
+#---This program was created for the purpose of determining the effect of a----#
+#----------------------perturber in different orientations---------------------#
+#------------------------------------------------------------------------------#
+#------------------------Date Last Modified: 08/27/2018------------------------#
+#------------------------------------------------------------------------------#
+
 import math, sys, os
 import numpy as np
 from amuse.lab import *
@@ -62,7 +73,8 @@ def extract_EulerAngles(rotation_matrix):
 def rotation_matrix_from_angles(psi, theta, phi):
     cs = np.cos([psi, theta, phi])
     ss = np.sin([psi, theta, phi])
-
+    
+    # Create three separate rotation matricies for each angle and rotate accordingly
     c = cs[0]
     s = ss[0]
     r1 = np.matrix([[c, -s, 0], [s, c, 0], [0, 0, 1]])
@@ -78,6 +90,7 @@ def rotation_matrix_from_angles(psi, theta, phi):
 # Simulates a given system-perturber encounter and finds that largest
 # maximum eccentricity of the outermost planet after a certain time period
 def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
+    # Needed for SmallN
     path = "../ce_directory/new_angles"+param+"/TRAPPIST/1"
     if not os.path.exists(path): os.makedirs(path)
 
@@ -92,28 +105,36 @@ def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
         es.append(line)
     return es
 
+
 def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, theta, phi):
+    '''
+    Generates a randomly oriented particle with mass M. The perturber will have a closest
+    approach distance of r_min and an eccentricity of ecc around a mass of other_M. 
+    The parameters psi, theta, and phi are not used.
+    '''
     perturber = Particle()
     perturber.mass = M
-    perturber.radius = np.cbrt(M.in_(units.MSun).number) | units.RSun
+    perturber.radius = np.cbrt(M.in_(units.MSun).number) | units.RSun # scale radius as cube of mass
     total_mass = M + other_M
 
-    mean_anomaly = np.deg2rad(-135)
+    mean_anomaly = np.deg2rad(-135) # place the perturber at a specific point along its trajectory
     semi = r_min / (1 - ecc)
-    kep.initialize_from_elements(mass=total_mass, semi=semi, ecc=ecc, mean_anomaly=mean_anomaly, time=0|units.yr, periastron=r_min)
-
+    kep.initialize_from_elements(mass=total_mass, semi=semi, ecc=ecc, mean_anomaly=mean_anomaly, time=0|units.yr, periastron=r_min) # Build position and velocity from orbital parameters
+    
     position = kep.get_separation_vector()
     velocity = kep.get_velocity_vector()
 
 
     kep.advance_to_periastron()
-    timescale = kep.get_time()
+    timescale = kep.get_time() # Find the time it will take to get to closest approach
 
     #psi, theta, phi = np.deg2rad((psi, theta, phi))
     rotation_matrix = preform_EulerRotation()#rotation_matrix_from_angles(psi, theta, phi)#preform_EulerRotation()
     psi, theta, phi = extract_EulerAngles(rotation_matrix)
     #print np.rad2deg([psi, theta, phi])
 
+    # Convert x-y plane to x-z plane
+    # This is because TRAPPIST-1 is flat relative to the x-z plane
     position_matrix = np.matrix(([[position[0].number], [position[2].number], [position[1].number]]))
     velocity_matrix = np.matrix(([[velocity[0].number], [velocity[2].number], [velocity[1].number]]))
     position_new = np.dot(rotation_matrix, position_matrix) | position[0].unit

@@ -97,7 +97,12 @@ def get_largest_delta_e(bodies, perturber, timescale, converter, n, param):
     return es
 
 # Generate perturber based on given parameters.
-def generate_random_perturber_orientation(r_min, ecc, M, other_M, kep, psi, theta, phi):
+def generate_perturber(r_min, ecc, M, other_M, kep, psi, theta, phi):
+    '''
+    Generates a randomly oriented particle with mass M. The perturber will have a closest
+    approach distance of r_min and an eccentricity of ecc around a mass of other_M. 
+    The parameters psi, theta, and phi are used to generate the perturber's orientation.
+    '''
     perturber = Particle()
     perturber.mass = M
     perturber.radius = np.cbrt(M.in_(units.MSun).number) | units.RSun
@@ -164,7 +169,7 @@ def run(param, mass, name_int, initial_e, percent_increase):
         converter = nbody_system.nbody_to_si(bodies.mass.sum() + M, 2 * (M.number)**(1.0 / 3.0) | units.RSun)
         kep = Kepler(unit_converter=converter)
 
-        perturber, angles, timescale = generate_random_perturber_orientation(r_min, ecc, M, bodies.mass.sum(), kep, psi, theta, phi)
+        perturber, angles, timescale = generate_perturber(r_min, ecc, M, bodies.mass.sum(), kep, psi, theta, phi)
 	bodies.add_particle(perturber)
 	kep.stop()
         es = get_largest_delta_e(bodies, perturber, timescale, converter, n, param)

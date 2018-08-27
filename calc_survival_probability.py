@@ -1,9 +1,21 @@
+#------------------------------------------------------------------------------#
+#--------------------------calc_survial_probability.py-------------------------#
+#------------------------------------------------------------------------------#
+#--------------------------Created by Nick DeFilippis--------------------------#
+#------------------------------------------------------------------------------#
+#---This program was created for the purpose of calculating the probability----#
+#----that a particular system will become disrupted in its lifetime due to-----#
+#----------------------close encounters in its star cluster--------------------#
+#------------------------------------------------------------------------------#
+#------------------------Date Last Modified: 08/27/2018------------------------#
+#------------------------------------------------------------------------------#
+
 from plot_closest import generate_mass_map
 import numpy as np
 from amuse.lab import units, constants
 
 def calc_survival_rate(distance_list):
-    distance_list.sort(key=lambda tuple: tuple[0])
+    distance_list.sort(key=lambda tuple: tuple[0]) # sort by masses
     
     masses = [x for x, _ in distance_list]
     distances = [y for _, y in distance_list]
@@ -11,11 +23,12 @@ def calc_survival_rate(distance_list):
     
     distance_hist = [(0 | units.AU,0)]
     masses_hist = [(0 | units.MSun,0)]
-    for m, d in zip(masses, distances):
+
+    for m, d in zip(masses, distances): # Bin together masses of similar value
         if m > (bins[len(distance_hist)] | units.MSun):
 	    distance_hist.append((d, 1))
 	    masses_hist.append((m, 1))
-	else:
+	else: # Keep track of a running average of both mass and distance for each bin
 	    x_curr, n_curr = distance_hist[-1]
 	    new_n = n_curr + 1.0
 	    distance_hist[-1] = ((x_curr * n_curr + d) / new_n, new_n)
@@ -28,7 +41,7 @@ def calc_survival_rate(distance_list):
     hist = np.histogram([m.number for m in masses], bins=bins, density=True)
 
     survival_prob = 0 | (units.s**-1)
-    for i in range(len(hist[0])-1):
+    for i in range(len(hist[0])-1): # calculate n*sigma*v for each mass
 	closest_approach = distance_hist[i]
 	average_mass = masses_hist[i]
 	v_rms = 1.0 | units.kms
@@ -46,5 +59,5 @@ def calc_survival_rate(distance_list):
 
 if __name__ == "__main__":
     data_path = "data/distance"
-    data = generate_mass_map(data_path, contains_ecc=True)
+    data = generate_mass_map(data_path, contains_ecc=True) # Generate dictionary from data
     print calc_survival_rate(data[0.01])
