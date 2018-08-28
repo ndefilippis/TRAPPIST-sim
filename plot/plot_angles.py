@@ -1,17 +1,16 @@
 #------------------------------------------------------------------------------#
-#------------------------------plot_encounters.py------------------------------#
+#--------------------------------plot_angles.py--------------------------------#
 #------------------------------------------------------------------------------#
-#--------------------------Created by Mark Giovinazzi--------------------------#
+#--------------------------Created by Nick DeFilippis--------------------------#
+#--------------------------Inspired by Mark Giovinazzi-------------------------#
 #------------------------------------------------------------------------------#
-#-This program was created for the purpose of loading in saved encounter files-#
-#-to plot our encounters in a more general sense and will also generate movies-#
+#-This program was created for the purpose of creating heatmaps for encounters-#
+#-of differently oriented perturbers. The value of the heatmap depends on how--#
+#------much of an affect the perturber had on the eccentricity of the outer----#
+#-----------------------------------planet.------------------------------------#
 #------------------------------------------------------------------------------#
-#---------------------------Date Created: 12/??/2017---------------------------#
-#------------------------Date Last Modified: 05/02/2018------------------------#
-#------------------------------------------------------------------------------#
-
-#------------------------------------------------------------------------------#
-#-------------------------------Import Libraries-------------------------------#
+#---------------------------Date Created: 07/15/2018---------------------------#
+#------------------------Date Last Modified: 08/28/2018------------------------#
 #------------------------------------------------------------------------------#
 
 import matplotlib; matplotlib.use('agg')
@@ -24,6 +23,11 @@ from amuse.community.kepler.interface import kepler
 import matplotlib.patches as mpatches
 
 def parse_data_from_file(filename):
+    '''
+    Parse data file. Files are in the format
+    psi, theta, phi
+    <Time series of eccentricity>
+    '''
     f = open(filename)
     angles = f.readline()
     if angles == "":
@@ -38,43 +42,64 @@ def parse_data_from_file(filename):
     return psi, theta, phi, eccs
 
 def get_delta_e_metric(eccs):
+    '''
+    Values used for the heatmap.
+    Using the maximum eccentricity of the outermost planet
+    '''
     delta_eccs = []
     for ecc in eccs:
         delta_eccs.append(max(ecc))
     return delta_eccs[-1]
 
 def running_average(x_old, n_old, x_new, weight):
+    '''
+    Calculate running average based on old average, old count, new data, and its respective weight
+    '''
     n_new = n_old + weight
     return (x_old * n_old + weight * x_new) / n_new, n_new
 
 def gen_heatmap(xs, ys, ws, x_min, x_max, y_min, y_max, bins):
-    arr = np.empty((bins, bins, 2))
+    '''
+    Generate the heatmap that we are going to plot
+    '''
+    arr = np.empty((bins, bins, 2)) # Heatmap array
     dx = float(x_max - x_min) / bins
     dy = float(y_max - y_min) / bins
     
     for x, y, w in zip(xs, ys, ws):
+        '''
+        For each data point, distribute it among the four closest bins, with a 
+	weight respective to how close it is to each bin.
+	'''
         x_b = (x - x_min) / dx
 	y_b = (y - y_min) / dy
         
-	j = int(x_b)
-	i = int(y_b)
-	xf = x_b - j
+	j = int(x_b) # bin index
+	i = int(y_b) # bin index
+	xf = x_b - j # how much of the point is in the bin
 	yf = y_b - i
 
+        # Deal with edge case
 	if j+1 >= bins:
 	    xf = 1
 	if i+1 >= bins:
 	    yf = 1
 	
+	# Keep track of running average for each bin
+
+	# lower-left
 	x_old, n_old = arr[i, j]
 	arr[i, j] = running_average(x_old, n_old, w, xf*yf)
         
+        # upper-right
 	if j+1 < bins and i+1 < bins:
 	    x_old, n_old = arr[i+1, j+1]
 	    arr[i+1,j+1] = running_average(x_old, n_old, w, (1-xf) * (1-yf))
+        # lower right
 	if j+1 < bins:
 	    x_old, n_old = arr[i, j+1]
 	    arr[i, j+1] = running_average(x_old, n_old, w, (1-xf) * yf)
+	# upper left
 	if i+1 < bins:
 	    x_old, n_old = arr[i+1, j]
 	    arr[i+1, j] = running_average(x_old, n_old, w, xf * (1-yf))
@@ -85,22 +110,25 @@ def gen_heatmap(xs, ys, ws, x_min, x_max, y_min, y_max, bins):
         for j in range(len(arr[i])):
 	    if arr[i, j, 1] == 0:
 	        count += 1
-	        arr[i, j, 0] = get_average(arr, i, j)
+	        arr[i, j, 0] = get_average(arr, i, j) # get average of surrounding values
 		arr[i, j, 1] = 0
     print "%d bins are 0." % count
     return arr[:,:,0]
 
 def get_average(arr, i, j):
+    '''
+    Get average values of surrounding squares, weighted by how close they are to this square
+    '''
     c = 0
     t = 0
-    for ii in range(-3, 4):
+    for ii in range(-3, 4): # take a 7x7 grid around this square, 3 squares in each direction
         for jj in range(-3, 4):
             i_n = i + ii
 	    j_n = j + jj
 	    if i_n >= 0 and i_n < len(arr) and j_n >= 0 and j_n < len(arr):
 	        x, n = arr[i_n, j_n]
-		if n != 0:
-                    c += 1 / float(ii*ii + jj*jj)
+		if n != 0: # if this square isnt already empty
+                    c += 1 / float(ii*ii + jj*jj) # inverse square weighting based on distance
 		    t += x / float(ii*ii + jj*jj)
     if c != 0:
         return t / c
@@ -112,13 +140,23 @@ def get_average(arr, i, j):
 #-The following function will handle all of this project's visualization tools-#
 #------------------------------------------------------------------------------#
 def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, make_map = True):
-    bins = 35
+    '''
+    Generate three separate heatmaps, one for each pair of Euler angles
+    psis - list of psis
+    thetas - list of thetas
+    phis - list of phis
+    eccs - list of eccentricities
+    path - where to save image
+    name - name of image file
+    '''
+    bins = 35 # number of bins in each dimension
     
-    ecc_min = 0.006 
+    ecc_min = 0.006 # upper and lower limit for heatmap values
     ecc_max = 0.0125
    
     print ecc_min, ecc_max
 
+    # boundary for Euler angles
     psi_max = 180.0
     psi_min = -180.0
     theta_max = 90.0
@@ -126,6 +164,8 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
     phi_max = 180.0
     phi_min = -180.0
 
+    # Print out histogram for theta distribution
+    # Not necessary, just something to look at
     t_bins = 31
     l = np.empty((t_bins, 2))
     dt = (theta_max - theta_min) / t_bins
@@ -139,7 +179,7 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
     if make_map == True:
         fig = plt.figure(figsize = (11.5, 10))
         #print xs[0], zs[0], cs[0], ss[0]
-        # x by z plot (top left corner)
+        # psi v phi plot (top left corner)
         plt.subplot(221, aspect = 'equal')
         ax = plt.gca()
         ax.tick_params(labelsize=20)
@@ -159,7 +199,7 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
         plt.xlim(psi_min, psi_max)
         plt.ylim(phi_min, phi_max)
 
-        # x by y plot (lower left corner)
+        # psi v theta plot (lower left corner)
         plt.subplot(223, aspect = 'equal')
         ax = plt.gca()
 	ax.tick_params(labelsize=20)
@@ -177,7 +217,7 @@ def generate_visuals(psis, thetas, phis, eccs, path, name, make_movie = False, m
         #ax.set_yticklabels([min, max])
         #ax.set_xicks([min, max])
         #ax.set_yicks([min, max])
-        # z by y plot (lower right corner)
+        # phi by theta plot (lower right corner)
         plt.subplot(224, aspect = 'equal')
         ax = plt.gca()
 	ax.tick_params(labelsize=20)
@@ -243,7 +283,7 @@ for data_dir in data_dirs:
     sample_paths = os.listdir(os.path.join(data_path, data_dir))
     for sample_path in sample_paths:
 	fin_data_path = os.path.join(data_path, data_dir, sample_path)
-	# If we compute how many stars and planets there are up top, we can ignore doing so in the next loop 
+	# Parse each data file
 	results = parse_data_from_file(fin_data_path)
 	if results == None:
 	    continue

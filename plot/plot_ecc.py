@@ -1,16 +1,19 @@
+'''
+Simple script to generate a line plot of eccentricity time series
+'''
 import matplotlib; matplotlib.use('agg')
 import numpy as np, matplotlib.pyplot as plt
 from amuse.lab import *
 import matplotlib.patches as mpatches
 
-filename1 = "distance000.txt"
-filename2 = "distance001.txt"
+filename1 = "../../distance000.txt"
+filename2 = "../../distance001.txt"
 
-def gen_time(n):
+def gen_time(n): # Assume simulation for 10,000 years
     dn = (10000.0) / n
     return np.arange(0, 10000.0, dn)
 
-def parse_e(filename):
+def parse_e(filename): # Parse eccentricities from file
     f = open(filename, "r")
     for _ in range(3): f.readline()
 
@@ -18,7 +21,7 @@ def parse_e(filename):
     eccs = eccs.split("], [")
     return np.array(list(map(float, eccs[-1].split(", "))))
 
-e1 = parse_e(filename1)
+e1 = parse_e(filename1) 
 e2 = parse_e(filename2)
 t = gen_time(len(e1))
 
@@ -26,7 +29,7 @@ print len(e1), len(e2), len(t)
 
 fig = plt.figure(figsize=(10, 6))
 
-plt.plot(t, e1, "#000000", linewidth=6)
+plt.plot(t, e1, "#000000", linewidth=6) # make an outline on the lighter color
 plt.plot(t, e1, "#ffc600", linewidth=4)
 plt.plot(t, e2, "#07294d", linewidth=4)
 
